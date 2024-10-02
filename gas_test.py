@@ -1,24 +1,27 @@
-from expanderpi import ADC
+from ExpanderPi import ADC
 import time
 
 # Initialize the ADC module
 adc = ADC()
 
-# Define the ADC channels connected to MQ4 and MQ135
-mq4_channel = 1  # Replace with the ADC channel connected to the MQ4 A0 pin
-mq135_channel = 2  # Replace with the ADC channel connected to the MQ135 A0 pin
+# MQ4 and MQ135 sensors connected ADC channels
+mq4_channel = 1  # Replace with the ADC channel connected to MQ4 A0 pin
+mq135_channel = 2  # Replace with the ADC channel connected to MQ135 A0 pin
+
+# If using an external reference voltage, set the reference voltage (optional)
+# adc.set_adc_refvoltage(4.096)
 
 try:
     while True:
-        # Read the analog value from the MQ4 sensor
-        mq4_value = adc.read_adc(mq4_channel, 12)  # Read with 12-bit resolution
-        # Read the analog value from the MQ135 sensor
-        mq135_value = adc.read_adc(mq135_channel, 12)
-        
-        # Print the sensor readings
-        print(f"MQ4 Analog Value: {mq4_value}")
-        print(f"MQ135 Analog Value: {mq135_value}")
-        
+        # Read the voltage from the MQ4 sensor (single-ended mode)
+        mq4_voltage = adc.read_adc_voltage(mq4_channel, 0)  # 0 means single-ended mode
+        # Read the voltage from the MQ135 sensor (single-ended mode)
+        mq135_voltage = adc.read_adc_voltage(mq135_channel, 0)
+
+        # Print the voltage readings
+        print(f"MQ4 Voltage: {mq4_voltage:.3f} V")
+        print(f"MQ135 Voltage: {mq135_voltage:.3f} V")
+
         # Read every second
         time.sleep(1)
 
