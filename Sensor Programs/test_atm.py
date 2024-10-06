@@ -2,7 +2,7 @@ import smbus2
 import bme280
 import pytz
 
-def get_bme280_data(address=0x76, timezone='Europe/Lisbon'):
+def get_bme280_data(address=0x76):
     """
     Reads BME280 sensor data and returns temperature and humidity.
 
@@ -29,6 +29,7 @@ def get_bme280_data(address=0x76, timezone='Europe/Lisbon'):
         timestamp = data.timestamp
 
         # Adjust timezone
+        timezone='Australia/Perth'
         desired_timezone = pytz.timezone(timezone)
         timestamp_tz = timestamp.replace(tzinfo=pytz.utc).astimezone(desired_timezone)
 

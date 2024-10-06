@@ -2,9 +2,15 @@
 from test_atm import get_bme280_data
 from gas_test import get_MQ_voltages
 
+# Configuration
+timezone='Australia/Perth'
+
+
+
+desired_timezone = pytz.timezone(timezone)
+timestamp_tz = timestamp.replace(tzinfo=pytz.utc).astimezone(desired_timezone)
+
 # try printing the readings from both sensors
-
-
 mq4_voltage, mq135_voltage = get_MQ_voltages()
 temp_c, temp_f, humidity = get_bme280_data()
 
