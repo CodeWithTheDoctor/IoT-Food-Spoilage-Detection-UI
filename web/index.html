@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            width: 80%;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Sensor Data Dashboard</h1>
+    <div class="chart-container">
+        <canvas id="temperatureChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="humidityChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="mq4VoltageChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="mq135VoltageChart"></canvas>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCW-G6tFz3GuJUiyJXEwhvaDtZJUKpHQgY",
+            authDomain: "cits5506-project-6a953.firebaseapp.com",
+            projectId: "cits5506-project-6a953",
+            storageBucket: "cits5506-project-6a953.appspot.com",
+            messagingSenderId: "77710866748",
+            appId: "1:77710866748:web:83afd2ac6efd41a79c0639"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        // Chart.js setup
+        var temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
+        var humidityCtx = document.getElementById('humidityChart').getContext('2d');
+        var mq4VoltageCtx = document.getElementById('mq4VoltageChart').getContext('2d');
+        var mq135VoltageCtx = document.getElementById('mq135VoltageChart').getContext('2d');
+
+        var temperatureChart = new Chart(temperatureCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: [],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        var humidityChart = new Chart(humidityCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Humidity (%)',
+                    data: [],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        var mq4VoltageChart = new Chart(mq4VoltageCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'MQ4 Voltage (V)',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        var mq135VoltageChart = new Chart(mq135VoltageCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'MQ135 Voltage (V)',
+                    data: [],
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Fetch data from Firestore and update charts
+        function fetchData() {
+            db.collection('readings').orderBy('timestamp', 'desc').limit(1).onSnapshot(snapshot => {
+                snapshot.forEach(doc => {
+                    var data = doc.data();
+                    var timestamp = new Date();
+
+                    // Update temperature chart
+                    temperatureChart.data.labels.push(timestamp);
+                    temperatureChart.data.datasets[0].data.push(data.temperature);
+                    temperatureChart.update();
+
+                    // Update humidity chart
+                    humidityChart.data.labels.push(timestamp);
+                    humidityChart.data.datasets[0].data.push(data.humidity);
+                    humidityChart.update();
+
+                    // Update MQ4 voltage chart
+                    mq4VoltageChart.data.labels.push(timestamp);
+                    mq4VoltageChart.data.datasets[0].data.push(data.mq4_voltage);
+                    mq4VoltageChart.update();
+
+                    // Update MQ135 voltage chart
+                    mq135VoltageChart.data.labels.push(timestamp);
+                    mq135VoltageChart.data.datasets[0].data.push(data.mq135_voltage);
+                    mq135VoltageChart.update();
+                });
+            });
+        }
+
+        // Start fetching data
+        fetchData();
+    </script>
+</body>
+
+</html>

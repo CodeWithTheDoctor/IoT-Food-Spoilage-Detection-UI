@@ -16,14 +16,15 @@ def report_sensor_data():
         try:
             # Get sensor readings
             mq4_voltage, mq135_voltage = get_MQ_voltages()
-            temp_c, temp_f, humidity = get_bme280_data()
+            temp_c, humidity, timestamp_tz  = get_bme280_data()
 
             # Create a dictionary with the data
             sensor_data = {
                 "temperature": temp_c,
                 "humidity": humidity,
                 "mq4_voltage": mq4_voltage,
-                "mq135_voltage": mq135_voltage
+                "mq135_voltage": mq135_voltage,
+                "timestamp": timestamp_tz
             }
 
             # Send data to the "readings" collection in Firestore
