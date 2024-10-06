@@ -24,7 +24,7 @@ When you need to do development work, these are the steps you need to take in or
      - Inside the project folder, run the following commands:
        - macOS/Linux:
          - a. `python3 -m venv .venv` (skip to b. if you've done this before)
-         - b. `. .venv/bin/activate`
+         - b. `source .venv/bin/activate`
        - Windows:
          - a. `py -3 -m venv .venv` (skip to b. if you've done this before)
          - b. `.venv\Scripts\activate`
