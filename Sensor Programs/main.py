@@ -1,6 +1,7 @@
 # import get_MQ_voltages from gas_test and get_bme280_data from test_atm
 from test_atm import get_bme280_data
 from gas_test import get_MQ_voltages
+import pytz
 
 # Configuration
 timezone='Australia/Perth'
