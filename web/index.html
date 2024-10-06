@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Data Dashboard</title>
+    <title>Food Spoilage Detection Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,20 +24,118 @@
             margin-top: 20px;
         }
 
-        .current-values {
-            margin: 20px 0;
+        .status {
+            margin: 10px 20px;
             font-size: 1.2em;
+            text-align: center;
+        }
+
+        .status span {
+            font-weight: bold;
+        }
+
+        .status .running {
+            color: green;
+        }
+
+        .status .offline {
+            color: red;
+        }
+
+        .current-values {
+            margin: 20px 20px;
+            font-size: 1.2em;
+            text-align: center;
         }
 
         .chart-container {
             width: 80%;
             margin: 20px 0;
         }
+
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 30px;
+            font-size: 17px;
+        }
+
+        .toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @-webkit-keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @-webkit-keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .status {
+                word-wrap: break-word;
+            }
+        }
     </style>
 </head>
 
 <body>
     <h1>Sensor Data Dashboard</h1>
+    <div class="status" id="systemStatus">
+        Status: <span class="offline">OFFLINE</span>
+    </div>
     <div class="current-values" id="currentValues">
         Loading current values...
     </div>
@@ -53,6 +151,8 @@
     <div class="chart-container">
         <canvas id="mq135VoltageChart"></canvas>
     </div>
+
+    <div id="toast" class="toast">Made with love, by group 12 (Liu, Li, Mohammad and Ash)</div>
 
     <script>
         // Firebase configuration
@@ -232,14 +332,36 @@
                 snapshot.forEach(doc => {
                     var data = doc.data();
                     document.getElementById('currentValues').innerText = `Temperature: ${data.temperature.toFixed(1)}℃, Humidity: ${data.humidity.toFixed(1)}%, MQ4 Voltage: ${data.mq4_voltage.toFixed(3)}V, MQ135 Voltage: ${data.mq135_voltage.toFixed(3)}V`;
+
+                    // Update system status
+                    const now = new Date();
+                    const lastTimestamp = data.timestamp.toDate();
+                    const diffSeconds = Math.floor((now - lastTimestamp) / 1000);
+
+                    if (diffSeconds <= 10) {
+                        document.getElementById('systemStatus').innerHTML = 'Status: <span class="running">RUNNING</span>';
+                    } else {
+                        document.getElementById('systemStatus').innerHTML = `Status: <span class="offline">OFFLINE</span><br>(last seen ${diffSeconds} seconds ago)`;
+                    }
                 });
             });
+        }
+
+        // Show toast popup
+        function showToast() {
+            var toast = document.getElementById("toast");
+            toast.className = "toast show";
+            setTimeout(function () { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
         // Start fetching data
         fetchCurrentValues();
         fetchData();
-        setInterval(fetchData, 5000); // Update charts every 30 seconds
+        setInterval(fetchData, 30000); // Update charts every 30 seconds
+        setInterval(fetchCurrentValues, 1000); // Update current values every second
+
+        // Show toast popup on page load
+        window.onload = showToast;
     </script>
 </body>
 
