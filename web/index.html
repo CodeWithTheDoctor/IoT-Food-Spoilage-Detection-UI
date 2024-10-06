@@ -370,7 +370,7 @@
         fetchCurrentValues();
         fetchData();
         setInterval(fetchData, 30000); // Update charts every 30 seconds
-        setInterval(fetchCurrentValues, 1000); // Update current values every second
+        setInterval(fetchCurrentValues, 5000); // Update current values every 5 seconds
 
         // Show toast popup on page load
         window.onload = showToast;
