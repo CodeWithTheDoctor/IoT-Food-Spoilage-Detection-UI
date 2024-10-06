@@ -39,7 +39,7 @@ def get_bme280_data(address=0x76):
         # Print the readings
         # print(timestamp_tz.strftime('%H:%M:%S %d/%m/%Y') + " Temp={0:0.1f}ºC, Temp={1:0.1f}ºF, Humidity={2:0.1f}%".format(temperature_celsius, temperature_fahrenheit, humidity))
 
-        return temperature_celsius, temperature_fahrenheit, humidity
+        return temperature_celsius, humidity, timestamp_tz
 
     except Exception as e:
         print('An unexpected error occurred:', str(e))
