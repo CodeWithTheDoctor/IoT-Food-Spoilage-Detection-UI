@@ -159,16 +159,26 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyCW-G6tFz3GuJUiyJXEwhvaDtZJUKpHQgY",
-            authDomain: "cits5506-project-6a953.firebaseapp.com",
-            projectId: "cits5506-project-6a953",
-            storageBucket: "cits5506-project-6a953.appspot.com",
-            messagingSenderId: "77710866748",
-            appId: "1:77710866748:web:83afd2ac6efd41a79c0639"
+            apiKey: "AIzaSyB6bDJ8CVYJGSknBtuDPpARfq7FYPWXtNI",
+            authDomain: "superchat-a933e.firebaseapp.com",
+            projectId: "superchat-a933e",
+            storageBucket: "superchat-a933e.appspot.com",
+            messagingSenderId: "292696901282",
+            appId: "1:292696901282:web:e99fdfb6c880ee157e79fb"
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         var db = firebase.firestore();
+
+        // Enable Firestore persistence for caching
+        firebase.firestore().enablePersistence()
+            .catch(function (err) {
+                if (err.code === 'failed-precondition') {
+                    console.log('Persistence failed - multiple tabs open');
+                } else if (err.code === 'unimplemented') {
+                    console.log('Persistence not available in this browser');
+                }
+            });
 
         // Chart.js setup
         var temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
@@ -330,7 +340,7 @@
 
         // Fetch current values from Firestore and update the display
         function fetchCurrentValues() {
-            db.collection('readings').orderBy('timestamp', 'desc').limit(1).onSnapshot(snapshot => {
+            db.collection('readings').orderBy('timestamp', 'desc').limit(1).get().then(snapshot => {
                 snapshot.forEach(doc => {
                     var data = doc.data();
                     document.getElementById('currentValues').innerText = `Temperature: ${data.temperature.toFixed(1)}℃, Humidity: ${data.humidity.toFixed(1)}%, MQ4 Voltage: ${data.mq4_voltage.toFixed(3)}V, MQ135 Voltage: ${data.mq135_voltage.toFixed(3)}V`;
