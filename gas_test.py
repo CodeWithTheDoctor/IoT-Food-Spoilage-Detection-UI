@@ -23,7 +23,7 @@ try:
         print(f"MQ135 Voltage: {mq135_voltage:.3f} V")
 
         # Read every second
-        time.sleep(1)
+        time.sleep(5)
 
 except KeyboardInterrupt:
     print("Program terminated")
