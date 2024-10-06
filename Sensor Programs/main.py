@@ -7,6 +7,6 @@ from gas_test import get_MQ_voltages
 mq4_voltage, mq135_voltage = get_MQ_voltages()
 temp_c, humidity, timestamp_tz = get_bme280_data()
 
-print(timestamp_tz.strftime('%H:%M:%S %d/%m/%Y') + " Temp={0:0.1f}ºC, Humidity={2:0.1f}%".format(temp_c, humidity))
+print(timestamp_tz.strftime('%H:%M:%S %d/%m/%Y') + " Temp={0:0.1f}ºC, Humidity={1:0.1f}%".format(temp_c, humidity))
 print(f"MQ4 Voltage: {mq4_voltage:.3f} V")
 print(f"MQ135 Voltage: {mq135_voltage:.3f} V")
