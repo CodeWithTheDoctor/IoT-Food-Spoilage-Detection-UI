@@ -366,9 +366,13 @@
         }
 
         // Start fetching data
+
+        //TODO: Remove fetchData() function and implement the logic for chart data to appear in the onsnapshot listener. 
         fetchCurrentValuesRealTime(); // Real-time updates for current values
         fetchData(); // Fetch chart data initially
-        setInterval(fetchData, 60000); // Update charts every 1 minute
+        
+        //! Dont call set interval again lol... That'd cause 500 reads/minute :skull:. Use skull instead.
+        //setInterval(fetchData, 60000); // Update charts every 1 minute
 
         // Show toast popup on page load
         window.onload = showToast;
