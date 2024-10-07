@@ -31,6 +31,4 @@ fi
 # Deactivate the virtual environment
 deactivate
 
-# Clean up old log files (optional)
-find /path/to/logs -type f -name "*.log" -mtime +7 -exec rm -f {} \;  # Delete log files older than 7 days
 
