@@ -3,6 +3,8 @@ from firebase_admin import credentials, firestore
 from test_atm import get_bme280_data
 from gas_test import get_MQ_voltages
 import time
+import os
+import psutil  # To check system resources
 
 def report_sensor_data():
     # Initialize Firebase Admin SDK
@@ -12,11 +14,34 @@ def report_sensor_data():
     # Initialize Firestore client
     db = firestore.client()
 
+    # Monitor resources to avoid overloading the Raspberry Pi
+    def check_system_resources():
+        mem = psutil.virtual_memory()
+        open_files = len(psutil.Process(os.getpid()).open_files())
+        max_open_files = os.sysconf('SC_OPEN_MAX')
+        
+        if mem.percent > 90:
+            print("Warning: Memory usage is high.")
+        if open_files >= max_open_files * 0.9:
+            print("Warning: Too many open files. Consider reducing usage.")
+        return mem.percent, open_files
+
     while True:
         try:
+            # Check system resources before proceeding
+            mem_usage, open_files = check_system_resources()
+            if mem_usage > 90 or open_files >= max_open_files * 0.9:
+                time.sleep(10)
+                continue
+
             # Get sensor readings
             mq4_voltage, mq135_voltage = get_MQ_voltages()
-            temp_c, humidity, timestamp_tz  = get_bme280_data()
+            temp_c, humidity, timestamp_tz = get_bme280_data()
+
+            if None in (mq4_voltage, mq135_voltage, temp_c, humidity):
+                print("Error reading sensors, retrying...")
+                time.sleep(5)
+                continue
 
             # Create a dictionary with the data
             sensor_data = {
