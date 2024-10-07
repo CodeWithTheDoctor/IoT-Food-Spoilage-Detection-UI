@@ -295,6 +295,7 @@
         });
 
         // Fetch data from Firestore and update charts
+        // Fetch data from Firestore and update charts
         function fetchData() {
             db.collection('readings')
                 .orderBy('timestamp', 'desc')
@@ -312,30 +313,27 @@
 
                     snapshot.forEach(doc => {
                         var data = doc.data();
-                        var timestamp = data.timestamp.toDate();
+                        var timestamp = data.timestamp.toDate();  // Assuming `timestamp` is a Firestore Timestamp
 
-                        // Update temperature chart
+                        // Populate the charts
                         temperatureChart.data.labels.push(timestamp);
                         temperatureChart.data.datasets[0].data.push(data.temperature);
-
-                        // Update humidity chart
                         humidityChart.data.labels.push(timestamp);
                         humidityChart.data.datasets[0].data.push(data.humidity);
-
-                        // Update MQ4 voltage chart
                         mq4VoltageChart.data.labels.push(timestamp);
                         mq4VoltageChart.data.datasets[0].data.push(data.mq4_voltage);
-
-                        // Update MQ135 voltage chart
                         mq135VoltageChart.data.labels.push(timestamp);
                         mq135VoltageChart.data.datasets[0].data.push(data.mq135_voltage);
                     });
 
-                    // Update charts
+                    // Update the charts
                     temperatureChart.update();
                     humidityChart.update();
                     mq4VoltageChart.update();
                     mq135VoltageChart.update();
+                })
+                .catch(error => {
+                    console.error("Error fetching data from Firestore:", error);
                 });
         }
 
@@ -369,6 +367,7 @@
 
         // Start fetching data
         fetchCurrentValuesRealTime(); // Real-time updates for current values
+        fetchData(); // Fetch chart data initially
         setInterval(fetchData, 60000); // Update charts every 1 minute
 
         // Show toast popup on page load
