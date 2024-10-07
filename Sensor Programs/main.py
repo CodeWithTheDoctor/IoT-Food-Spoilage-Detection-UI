@@ -14,16 +14,18 @@ def report_sensor_data():
     # Initialize Firestore client
     db = firestore.client()
 
+    # Get the system's maximum allowed open files
+    max_open_files = os.sysconf('SC_OPEN_MAX')
+
     # Monitor resources to avoid overloading the Raspberry Pi
     def check_system_resources():
         mem = psutil.virtual_memory()
         open_files = len(psutil.Process(os.getpid()).open_files())
-        max_open_files = os.sysconf('SC_OPEN_MAX')
         
         if mem.percent > 90:
             print("Warning: Memory usage is high.")
         if open_files >= max_open_files * 0.9:
-            print("Warning: Too many open files. Consider reducing usage.")
+            print(f"Warning: Too many open files ({open_files}/{max_open_files}).")
         return mem.percent, open_files
 
     while True:
