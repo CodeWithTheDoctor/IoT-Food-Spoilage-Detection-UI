@@ -294,53 +294,43 @@
             }
         });
 
-        // Fetch data from Firestore and update charts
-        function fetchData() {
-            const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+        // Real-time listener to update chart data from Firestore
+        db.collection('readings').orderBy('timestamp', 'desc').limit(500).onSnapshot(snapshot => {
+            // Clear existing data
+            temperatureChart.data.labels = [];
+            temperatureChart.data.datasets[0].data = [];
+            humidityChart.data.labels = [];
+            humidityChart.data.datasets[0].data = [];
+            mq4VoltageChart.data.labels = [];
+            mq4VoltageChart.data.datasets[0].data = [];
+            mq135VoltageChart.data.labels = [];
+            mq135VoltageChart.data.datasets[0].data = [];
 
-            db.collection('readings').where('timestamp', '>=', twelveHoursAgo).orderBy('timestamp').get().then(snapshot => {
-                // Clear existing data
-                temperatureChart.data.labels = [];
-                temperatureChart.data.datasets[0].data = [];
-                humidityChart.data.labels = [];
-                humidityChart.data.datasets[0].data = [];
-                mq4VoltageChart.data.labels = [];
-                mq4VoltageChart.data.datasets[0].data = [];
-                mq135VoltageChart.data.labels = [];
-                mq135VoltageChart.data.datasets[0].data = [];
+            snapshot.forEach(doc => {
+                var data = doc.data();
+                var timestamp = data.timestamp.toDate();  // Assuming `timestamp` is a Firestore Timestamp
 
-                snapshot.forEach(doc => {
-                    var data = doc.data();
-                    var timestamp = data.timestamp.toDate();
-
-                    // Update temperature chart
-                    temperatureChart.data.labels.push(timestamp);
-                    temperatureChart.data.datasets[0].data.push(data.temperature);
-
-                    // Update humidity chart
-                    humidityChart.data.labels.push(timestamp);
-                    humidityChart.data.datasets[0].data.push(data.humidity);
-
-                    // Update MQ4 voltage chart
-                    mq4VoltageChart.data.labels.push(timestamp);
-                    mq4VoltageChart.data.datasets[0].data.push(data.mq4_voltage);
-
-                    // Update MQ135 voltage chart
-                    mq135VoltageChart.data.labels.push(timestamp);
-                    mq135VoltageChart.data.datasets[0].data.push(data.mq135_voltage);
-                });
-
-                // Update charts
-                temperatureChart.update();
-                humidityChart.update();
-                mq4VoltageChart.update();
-                mq135VoltageChart.update();
+                // Populate the charts
+                temperatureChart.data.labels.push(timestamp);
+                temperatureChart.data.datasets[0].data.push(data.temperature);
+                humidityChart.data.labels.push(timestamp);
+                humidityChart.data.datasets[0].data.push(data.humidity);
+                mq4VoltageChart.data.labels.push(timestamp);
+                mq4VoltageChart.data.datasets[0].data.push(data.mq4_voltage);
+                mq135VoltageChart.data.labels.push(timestamp);
+                mq135VoltageChart.data.datasets[0].data.push(data.mq135_voltage);
             });
-        }
 
-        // Fetch current values from Firestore and update the display
-        function fetchCurrentValues() {
-            db.collection('readings').orderBy('timestamp', 'desc').limit(1).get().then(snapshot => {
+            // Update the charts
+            temperatureChart.update();
+            humidityChart.update();
+            mq4VoltageChart.update();
+            mq135VoltageChart.update();
+        });
+
+        // Fetch current values from Firestore and update the display using real-time updates
+        function fetchCurrentValuesRealTime() {
+            db.collection('readings').orderBy('timestamp', 'desc').limit(1).onSnapshot(snapshot => {
                 snapshot.forEach(doc => {
                     var data = doc.data();
                     document.getElementById('currentValues').innerText = `Temperature: ${data.temperature.toFixed(1)}℃, Humidity: ${data.humidity.toFixed(1)}%, MQ4 Voltage: ${data.mq4_voltage.toFixed(3)}V, MQ135 Voltage: ${data.mq135_voltage.toFixed(3)}V`;
@@ -367,10 +357,7 @@
         }
 
         // Start fetching data
-        fetchCurrentValues();
-        fetchData();
-        setInterval(fetchData, 30000); // Update charts every 30 seconds
-        setInterval(fetchCurrentValues, 5000); // Update current values every 5 seconds
+        fetchCurrentValuesRealTime(); // Real-time updates for current values
 
         // Show toast popup on page load
         window.onload = showToast;
