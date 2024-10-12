@@ -154,6 +154,15 @@
         <canvas id="mq135VoltageChart"></canvas>
     </div>
 
+    <!-- New Form to Download Data as CSV -->
+    <div>
+        <form id="downloadForm">
+            <label for="hoursInput">Enter number of hours of data:</label>
+            <input type="number" id="hoursInput" name="hoursInput" min="1" value="7">
+            <button type="submit">Download CSV</button>
+        </form>
+    </div>
+
     <div id="toast" class="toast">Made with love, by group 12 (Liu, Li, Muhammad and Ash)</div>
 
     <script>
@@ -294,39 +303,78 @@
             }
         });
 
+        let latestTimestamp = null;
+
         // Real-time listener to update chart data from Firestore
-        db.collection('readings').orderBy('timestamp', 'desc').limit(500).onSnapshot(snapshot => {
-            // Clear existing data
-            temperatureChart.data.labels = [];
-            temperatureChart.data.datasets[0].data = [];
-            humidityChart.data.labels = [];
-            humidityChart.data.datasets[0].data = [];
-            mq4VoltageChart.data.labels = [];
-            mq4VoltageChart.data.datasets[0].data = [];
-            mq135VoltageChart.data.labels = [];
-            mq135VoltageChart.data.datasets[0].data = [];
-
+        db.collection('readings').orderBy('timestamp', 'desc').limit(1).onSnapshot(snapshot => {
             snapshot.forEach(doc => {
-                var data = doc.data();
-                var timestamp = data.timestamp.toDate();  // Assuming `timestamp` is a Firestore Timestamp
+                const latestData = doc.data();
+                latestTimestamp = latestData.timestamp.toDate();
 
-                // Populate the charts
-                temperatureChart.data.labels.push(timestamp);
-                temperatureChart.data.datasets[0].data.push(data.temperature);
-                humidityChart.data.labels.push(timestamp);
-                humidityChart.data.datasets[0].data.push(data.humidity);
-                mq4VoltageChart.data.labels.push(timestamp);
-                mq4VoltageChart.data.datasets[0].data.push(data.mq4_voltage);
-                mq135VoltageChart.data.labels.push(timestamp);
-                mq135VoltageChart.data.datasets[0].data.push(data.mq135_voltage);
+                // Now fetch data for the last 7 hours from the latest point received
+                const sevenHoursBefore = new Date(latestTimestamp.getTime() - 7 * 60 * 60 * 1000);
+                db.collection('readings')
+                    .where('timestamp', '>=', sevenHoursBefore)
+                    .orderBy('timestamp', 'asc')
+                    .get()
+                    .then(snapshot => {
+                        // Clear existing data
+                        temperatureChart.data.labels = [];
+                        temperatureChart.data.datasets[0].data = [];
+                        humidityChart.data.labels = [];
+                        humidityChart.data.datasets[0].data = [];
+                        mq4VoltageChart.data.labels = [];
+                        mq4VoltageChart.data.datasets[0].data = [];
+                        mq135VoltageChart.data.labels = [];
+                        mq135VoltageChart.data.datasets[0].data = [];
+
+                        snapshot.forEach(doc => {
+                            var data = doc.data();
+                            var timestamp = data.timestamp.toDate();
+
+                            // Populate the charts
+                            temperatureChart.data.labels.push(timestamp);
+                            temperatureChart.data.datasets[0].data.push(data.temperature);
+                            humidityChart.data.labels.push(timestamp);
+                            humidityChart.data.datasets[0].data.push(data.humidity);
+                            mq4VoltageChart.data.labels.push(timestamp);
+                            mq4VoltageChart.data.datasets[0].data.push(data.mq4_voltage);
+                            mq135VoltageChart.data.labels.push(timestamp);
+                            mq135VoltageChart.data.datasets[0].data.push(data.mq135_voltage);
+                        });
+
+                        // Update the charts
+                        temperatureChart.update();
+                        humidityChart.update();
+                        mq4VoltageChart.update();
+                        mq135VoltageChart.update();
+                    });
             });
-
-            // Update the charts
-            temperatureChart.update();
-            humidityChart.update();
-            mq4VoltageChart.update();
-            mq135VoltageChart.update();
         });
+
+        // Function to download data in CSV format
+        function downloadCSV(hours) {
+            const startTime = new Date(latestTimestamp.getTime() - hours * 60 * 60 * 1000);
+            db.collection('readings')
+                .where('timestamp', '>=', startTime)
+                .orderBy('timestamp', 'asc')
+                .get()
+                .then(snapshot => {
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    csvContent += "timestamp,temperature,humidity,mq4_voltage,mq135_voltage\n";
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const row = `${data.timestamp.toDate().toISOString()},${data.temperature},${data.humidity},${data.mq4_voltage},${data.mq135_voltage}\n`;
+                        csvContent += row;
+                    });
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `sensor_data_${hours}_hours.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                });
+        }
 
         // Fetch current values from Firestore and update the display using real-time updates
         function fetchCurrentValuesRealTime() {
@@ -348,6 +396,13 @@
                 });
             });
         }
+
+        // Handle CSV download on form submit
+        document.getElementById('downloadForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const hours = document.getElementById('hoursInput').value;
+            downloadCSV(hours);
+        });
 
         // Show toast popup
         function showToast() {
