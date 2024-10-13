@@ -6,12 +6,12 @@ import time
 import os
 import psutil  # To check system resources
 
+# Define the experiment name - This will also be the name of the document on Firestore
+EXPERIMENT_NAME = 'Rice2'
+
 def report_sensor_data():
-    # Initialize Firebase Admin SDK
     cred = credentials.Certificate("../serviceAccountKey.json")  # Replace with the path to your service account key
     firebase_admin.initialize_app(cred)
-
-    # Initialize Firestore client
     db = firestore.client()
 
     # Get the system's maximum allowed open files
@@ -27,6 +27,9 @@ def report_sensor_data():
         if open_files >= max_open_files * 0.9:
             print(f"Warning: Too many open files ({open_files}/{max_open_files}).")
         return mem.percent, open_files
+
+    # Reference to the experiment document in the Experiment collection
+    experiment_ref = db.collection('Experiment').document(EXPERIMENT_NAME)
 
     while True:
         try:
@@ -54,16 +57,28 @@ def report_sensor_data():
                 "timestamp": timestamp_tz
             }
 
-            # Send data to the "readings" collection in Firestore
-            db.collection('readings').add(sensor_data)
+            # Check if the experiment document exists
+            if not experiment_ref.get().exists:
+                # Create the experiment document with createdAt and name fields
+                experiment_ref.set({
+                    "createdAt": firestore.SERVER_TIMESTAMP,
+                    "name": "rice",
+                    "readings": []
+                })
+                print(f"{EXPERIMENT_NAME} document created.")
+
+            # Append the new sensor data to the readings array
+            experiment_ref.update({
+                'readings': firestore.ArrayUnion([sensor_data])
+            })
 
             # Print the readings
             print(f"Temp={temp_c:0.1f}ºC, Humidity={humidity:0.1f}%")
             print(f"MQ4 Voltage: {mq4_voltage:.3f} V")
             print(f"MQ135 Voltage: {mq135_voltage:.3f} V")
 
-            # Wait for 5 seconds before the next reading
-            time.sleep(5)
+            # Wait for 1 minute before the next reading
+            time.sleep(60)
 
         except KeyboardInterrupt:
             print("Program terminated")
