@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 
 const firebaseConfig = {
@@ -27,4 +27,16 @@ messaging.onBackgroundMessage((payload) => {
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
+    self.addEventListener('install', (event) => {
+    console.log('Installed');
+});
+
+self.addEventListener('activate', (event) => {
+    console.log('Activated');
+});
+
+self.addEventListener('fetch', (event) => {
+    console.log('Fetch request');
+});
+
 });
