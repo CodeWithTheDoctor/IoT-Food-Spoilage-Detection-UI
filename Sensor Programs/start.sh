@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the soft limit for open files to 4096
-ulimit -n 4096
+ulimit -n 8192
 
 # Path to the virtual environment
 VENV_PATH="env"
