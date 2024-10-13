@@ -8,7 +8,7 @@ import os
 import psutil  # To check system resources
 
 # Define the experiment name - This will also be the name of the document on Firestore
-EXPERIMENT_NAME = 'Rice2'
+EXPERIMENT_NAME = 'Rice3'
 
 def report_sensor_data():
     cred = credentials.Certificate("../serviceAccountKey.json")  # Replace with the path to your service account key
@@ -31,8 +31,13 @@ def report_sensor_data():
 
     # Reference to the experiment document in the Experiment collection
     experiment_ref = db.collection('Experiment').document(EXPERIMENT_NAME)
-    send_fcm_message("Food Alert!", "The experiment has started.", "warning", db)
-    exit()
+    
+    send_fcm_message("Food Alert!", "Stablising system for a minute.", "warning", db)
+    time.sleep(60)
+    send_fcm_message("Food Alert!", "System stablised! The experiment has started.", "warning", db)
+    
+    alert_sent = False  # Local boolean variable to track if the alert has been sent
+
     while True:
         try:
             # Check system resources before proceeding
@@ -78,6 +83,15 @@ def report_sensor_data():
             print(f"Temp={temp_c:0.1f}ºC, Humidity={humidity:0.1f}%")
             print(f"MQ4 Voltage: {mq4_voltage:.3f} V")
             print(f"MQ135 Voltage: {mq135_voltage:.3f} V")
+
+            # Check if the mq4_voltage exceeds the threshold and send an alert if it hasn't been sent yet
+            if mq4_voltage > 1.21 and not alert_sent:
+                send_fcm_message("Food Alert", "Food has been spoilt!", "danger", db)
+                experiment_ref.update({
+                    "spoiled_at": timestamp_tz
+                })
+                alert_sent = True
+                print("Alert sent: Food has been spoilt!")
 
             # Wait for 1 minute before the next reading
             time.sleep(60)
