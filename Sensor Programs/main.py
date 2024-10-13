@@ -31,7 +31,7 @@ def report_sensor_data():
 
     # Reference to the experiment document in the Experiment collection
     experiment_ref = db.collection('Experiment').document(EXPERIMENT_NAME)
-    send_fcm_message("Food Alert!", "The experiment has started.")
+    send_fcm_message("Food Alert!", "The experiment has started.", "warning", db)
     exit()
     while True:
         try:
