@@ -7,6 +7,7 @@
     <title>Food Spoilage Detection Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-messaging.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
@@ -75,6 +76,16 @@
             visibility: visible;
             -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
             animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        #toastAlerts {
+            background-color: #f44336;
+        }
+
+        #toastAlerts.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s;
+            animation: fadein 0.5s;
         }
 
         @-webkit-keyframes fadein {
@@ -164,7 +175,8 @@
     </div>
 
     <div id="toast" class="toast">Made with love, by group 12 (Liu, Li, Muhammad and Ash)</div>
-
+    <!-- toast for alerts -->
+    <div id="toastAlerts" class="toast"></div>
     <script>
         // Firebase configuration
         const firebaseConfig = {
@@ -176,7 +188,7 @@
             appId: "1:292696901282:web:e99fdfb6c880ee157e79fb"
         };
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         var db = firebase.firestore();
 
         // Enable Firestore persistence for caching
@@ -405,7 +417,7 @@
         });
 
         // Show toast popup
-        function showToast() {
+        function showWelcomeToast() {
             var toast = document.getElementById("toast");
             toast.className = "toast show";
             setTimeout(function () { toast.className = toast.className.replace("show", ""); }, 3000);
@@ -415,7 +427,59 @@
         fetchCurrentValuesRealTime(); // Real-time updates for current values
 
         // Show toast popup on page load
-        window.onload = showToast;
+        window.onload = showWelcomeToast;
+
+
+        // push notification stuff
+
+        let notificationToken
+        let notificationStatus = false
+
+        const messaging = firebase.messaging();
+        const getToken = async () => {
+            let token = await messaging.getToken({ vapidKey: 'BOgP6ynYlx-AIzxlDXeljys9Q8Lg8ZZaq71rceBMNGtKAEmmTZu8eQtKdcIY0qeqEOYXTqVP03OE71Huk8wGsWc' }).then((currentToken) => {
+                if (currentToken) {
+                    console.log(currentToken)
+                    notificationStatus = true
+                    return currentToken
+                } else {
+                    console.log('No registration token available. Request permission to generate one.');
+                    return null
+                }
+            }).catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+                return null
+            });
+            return token
+        }
+
+        const main = async () => {
+            if (Notification.permission != "blocked") {
+                notificationToken = await getToken()
+                console.log(notificationToken)
+            }
+        }
+        main()
+
+        // Handle incoming messages in a new toasdt
+        function showToastNotification(payload) {
+            var toast = document.getElementById("toastAlerts");
+            toast.innerText = payload.notification.body;
+            toast.className = "toast show";
+            // setTimeout(function () { toast.className = toast.className.replace("show", ""); }, 3000);
+            // hide toast after user clicks else where
+            document.addEventListener('click', function () {
+                toast.className = toast.className.replace("show", "");
+            });
+        }
+
+        // Handle incoming messages
+        messaging.onMessage((payload) => {
+            console.log('Message received. ', payload);
+            showToastNotification(payload);
+        });
+
+
     </script>
 </body>
 
