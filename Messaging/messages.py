@@ -4,7 +4,7 @@ from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
 # Path to your service account key file
-SERVICE_ACCOUNT_FILE = './serviceAccountKey.json'
+SERVICE_ACCOUNT_FILE = '../serviceAccountKey.json'
 
 # FCM endpoint
 FCM_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/superchat-a933e/messages:send'

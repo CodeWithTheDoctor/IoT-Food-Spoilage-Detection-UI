@@ -2,4 +2,3 @@
 __pycache__
 serviceAccountKey.json
 env
-nodemon.json
