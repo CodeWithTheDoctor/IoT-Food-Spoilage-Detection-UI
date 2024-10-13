@@ -2,8 +2,6 @@ import json
 import requests
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
-import firebase_admin
-from firebase_admin import credentials, firestore
 
 # Path to your service account key file
 SERVICE_ACCOUNT_FILE = '../serviceAccountKey.json'
@@ -11,14 +9,7 @@ SERVICE_ACCOUNT_FILE = '../serviceAccountKey.json'
 # FCM endpoint
 FCM_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/superchat-a933e/messages:send'
 
-# Initialize Firebase Admin SDK
-cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
-firebase_admin.initialize_app(cred)
-
-# Initialize Firestore
-db = firestore.client()
-
-def send_fcm_message(title, body, alert_type):
+def send_fcm_message(title, body, alert_type, db):
     # Retrieve all tokens from the "users" collection
     tokens = []
     users_ref = db.collection('users')
