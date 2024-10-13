@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Spoilage Detection Dashboard</title>
+    <title>Food Alert! - Food Spoilage Detection Dashboard</title>
+    <meta name="description" content="A dashboard to monitor food spoilage and receive alerts.">
+    <meta property="og:title" content="Food Alert! - Food Spoilage Detection Dashboard">
+    <meta property="og:image" content="https://cdn-icons-png.freepik.com/512/7586/7586916.png">
+    <link rel="icon" href="./noti_icon.ico" type="image/x-icon">
+
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
@@ -21,10 +26,26 @@
             background-color: #fff;
         }
 
-        h1 {
+
+        .title-container {
             margin-top: 20px;
-            text-align: center;
-            margin: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .title-container img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .title-container h1 {
+            margin: 0;
+            font-size: 4em;
+        }
+
+        h2 {
+            font-size: 1.3em;
         }
 
         .status {
@@ -80,6 +101,11 @@
 
         #toastAlerts.danger {
             background-color: #f44336;
+            font-weight: bold;
+        }
+
+        #toastAlerts.warning {
+            background-color: #ff9800;
             font-weight: bold;
         }
 
@@ -143,6 +169,12 @@
             }
         }
 
+        .statuses {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+
         /* Style the form container */
         #downloadForm {
             display: flex;
@@ -189,18 +221,60 @@
         #downloadForm button[type="submit"]:hover {
             background-color: #45a049;
         }
+
+        #subscribeButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #subscribeButton:disabled {
+            cursor: not-allowed;
+            background: linear-gradient(270deg, #007bff, #00d4ff);
+            background-size: 400% 400%;
+            animation: gradientAnimation 3s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <h1>Food Spoilage Detection Dashboard</h1>
-    <div class="status" id="systemStatus">
-        Status: <span class="offline">OFFLINE</span>
+    <div class="title-container">
+        <img src="noti_icon.png" alt="Logo">
+        <h1>Food Alert</h1>
     </div>
+    <h2 class="subtitle">Food Spoilage Detection Dashboard</h2>
+    <section class="statuses">
+        <div class="status" id="systemStatus">
+            Status: <span class="offline">OFFLINE</span>
+        </div>
+        <div class="status" id="foodStatus">
+            Status: <span class="running">EDIBLE</span>
+        </div>
+    </section>
+
 
 
     <!-- Subscribe/Unsubscribe Button -->
-    <button id="subscribeButton">Subscribe</button>
+    <button id="subscribeButton" disabled>Turn on alerts</button>
 
     <div class="current-values" id="currentValues">
         Loading current values...
@@ -251,6 +325,10 @@
             },
             merge: true
         });
+
+        // element refs
+        const subscribeButton = document.getElementById('subscribeButton');
+
 
         // Define experiment document name
         const EXPERIMENT_NAME = 'Rice2';
@@ -484,6 +562,7 @@
         }
 
         const messaging = firebase.messaging();
+
         const getToken = async () => {
             try {
                 const permission = await Notification.requestPermission();
@@ -491,6 +570,7 @@
                     let token = await messaging.getToken({ vapidKey: 'BOgP6ynYlx-AIzxlDXeljys9Q8Lg8ZZaq71rceBMNGtKAEmmTZu8eQtKdcIY0qeqEOYXTqVP03OE71Huk8wGsWc' });
                     if (token) {
                         console.log('Token obtained: ', token);
+                        subscribeButton.disabled = false;
                         return token;
                     } else {
                         console.log('No registration token available.');
@@ -500,6 +580,7 @@
                 }
             } catch (error) {
                 console.error('Error getting notification token: ', error);
+                showDangerToastNotification({ data: { body: 'Error, try reloading.' } });
             }
             return null;
         };
@@ -514,7 +595,7 @@
                     subscribeButton.textContent = "Unsubscribe";
                 } else {
                     isSubscribed = false;
-                    subscribeButton.textContent = "Subscribe";
+                    subscribeButton.textContent = "Turn on alerts";
                 }
             }
 
@@ -528,7 +609,6 @@
 
         // Notification subscription button related
         let isSubscribed = false;
-        const subscribeButton = document.getElementById('subscribeButton');
 
 
         // Subscribe or Unsubscribe
@@ -536,13 +616,13 @@
             if (isSubscribed) {
                 // Unsubscribe
                 db.collection('users').doc(notificationToken).delete().then(() => {
-                    subscribeButton.textContent = "Subscribe";
+                    subscribeButton.textContent = "Turn on alerts";
                     isSubscribed = false;
                     console.log("Unsubscribed successfully.");
                 }).catch(error => console.error("Error unsubscribing: ", error));
             } else {
                 // Subscribe
-                db.collection('users').doc(notificationToken).set({ subscribed: true }).then(() => {
+                db.collection('users').doc(notificationToken).set({ notificationToken: notificationToken }).then(() => {
                     subscribeButton.textContent = "Unsubscribe";
                     isSubscribed = true;
                     console.log("Subscribed successfully.");
@@ -551,20 +631,31 @@
         };
 
         // Handle incoming messages in a new toast
-        function showToastNotification(payload) {
+        function showDangerToastNotification(payload) {
             var toast = document.getElementById("toastAlerts");
-            toast.innerText = payload.notification.body;
+            toast.innerText = payload.data.body;
             toast.className = "toast show danger";
-            // hide toast after user clicks else where
             document.addEventListener('click', function () {
                 toast.className = toast.className.replace("show", "");
             });
         }
 
+        function showWarningToastNotification(payload) {
+            var toast = document.getElementById("toastAlerts");
+            toast.innerText = payload.data.body;
+            toast.className = "toast show warning";
+            document.addEventListener('click', function () {
+                toast.className = toast.className.replace("show", "");
+            });
+        }
         // Handle incoming messages
         messaging.onMessage((payload) => {
             console.log('Message received. ', payload);
-            showToastNotification(payload);
+            if (payload.data.alert_type === 'danger') {
+                showDangerToastNotification(payload);
+            } else if (payload.data.alert_type === 'warning') {
+                showWarningToastNotification(payload);
+            }
         });
 
     </script>

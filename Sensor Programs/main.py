@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from test_atm import get_bme280_data
 from gas_test import get_MQ_voltages
+from messages import send_fcm_message
 import time
 import os
 import psutil  # To check system resources
@@ -30,7 +31,8 @@ def report_sensor_data():
 
     # Reference to the experiment document in the Experiment collection
     experiment_ref = db.collection('Experiment').document(EXPERIMENT_NAME)
-
+    send_fcm_message("Food Alert!", "The experiment has started.")
+    exit()
     while True:
         try:
             # Check system resources before proceeding
