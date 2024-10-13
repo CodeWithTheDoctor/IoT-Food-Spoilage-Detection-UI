@@ -12,7 +12,7 @@ FCM_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/superchat-a933e/messages:
 # FCM message payload
 message_payload = {
     "message": {
-        "token": "fcCnCC9UOKJLMoYSDWTJcL:APA91bGa5RUyLxohluLHJ7_3spUS2mM1CDFLZbYpM_Bhk5pZPd6XbtYq6yjQhYZekj30fvdakM9k_qyu8U3CPR4exvC05YAwD3BH8Kk7_NOsCRO4ldxqvrQ",
+        "token": "eRgjERqoweI-FfY_uz9bqU:APA91bGoVfbdo2H754qS9aqQRJ4H8z1x1Wj11TZW5FdgcBuN5HQC5RD1KVrN_OeE7GEaYgGaNdujhaAlQZUJd61cFYhpaP6QqW7zr_jKb0LMtBdeTeb0aAAleFqFgAoPIN7YJ_tNtm3I",
         "notification": {
             "title": "Food Alert",
             "body": "THE FOOD IS SPOILT! DO NOT EAT!",

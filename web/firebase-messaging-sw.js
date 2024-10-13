@@ -19,11 +19,10 @@ messaging.onBackgroundMessage((payload) => {
         payload
     );
     // Customize notification here
-    const notificationTitle = payload.data.title;
     const notificationOptions = {
         body: payload.data.body,
-        title: payload.data.title,
-        icon: 'https://cdn-icons-png.freepik.com/512/7586/7586916.png'
+        icon: 'noti_icon.png',
+        type: json
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
