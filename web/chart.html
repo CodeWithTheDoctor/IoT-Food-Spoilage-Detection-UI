@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Spoilage Detection Dashboard - Charts Only</title>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff;
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .chart-container {
+            width: 80%;
+            margin: 20px 0;
+        }
+
+        .input-container {
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Food Spoilage Detection Charts</h1>
+
+    <div class="input-container">
+        <label for="startTime">Start Time:</label>
+        <input type="datetime-local" id="startTime">
+        <label for="stopTime">Stop Time:</label>
+        <input type="datetime-local" id="stopTime">
+        <button id="updateCharts">Update Charts</button>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="temperatureChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="humidityChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="mq4VoltageChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="mq135VoltageChart"></canvas>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6bDJ8CVYJGSknBtuDPpARfq7FYPWXtNI",
+            authDomain: "superchat-a933e.firebaseapp.com",
+            projectId: "superchat-a933e",
+            storageBucket: "superchat-a933e.appspot.com",
+            messagingSenderId: "292696901282",
+            appId: "1:292696901282:web:e99fdfb6c880ee157e79fb"
+        };
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Define experiment document name
+        const EXPERIMENT_NAME = 'Rice3';
+
+        // Chart.js setup
+        var temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
+        var humidityCtx = document.getElementById('humidityChart').getContext('2d');
+        var mq4VoltageCtx = document.getElementById('mq4VoltageChart').getContext('2d');
+        var mq135VoltageCtx = document.getElementById('mq135VoltageChart').getContext('2d');
+
+        var temperatureChart = new Chart(temperatureCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: [],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        var humidityChart = new Chart(humidityCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Humidity (%)',
+                    data: [],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        var mq4VoltageChart = new Chart(mq4VoltageCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'MQ4 Voltage (V)',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        var mq135VoltageChart = new Chart(mq135VoltageCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'MQ135 Voltage (V)',
+                    data: [],
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Function to update charts based on the selected time range
+        document.getElementById('updateCharts').addEventListener('click', function () {
+            const startTime = new Date(document.getElementById('startTime').value);
+            const stopTime = new Date(document.getElementById('stopTime').value);
+
+            // Clear existing data
+            temperatureChart.data.labels = [];
+            temperatureChart.data.datasets[0].data = [];
+            humidityChart.data.labels = [];
+            humidityChart.data.datasets[0].data = [];
+            mq4VoltageChart.data.labels = [];
+            mq4VoltageChart.data.datasets[0].data = [];
+            mq135VoltageChart.data.labels = [];
+            mq135VoltageChart.data.datasets[0].data = [];
+
+            // Fetch data from Firestore
+            db.collection('Experiment').doc(EXPERIMENT_NAME).get().then(doc => {
+                const experimentData = doc.data();
+                experimentData.readings.forEach(data => {
+                    const timestamp = data.timestamp.toDate();
+                    if (timestamp >= startTime && timestamp <= stopTime) {
+                        // Populate the charts
+                        temperatureChart.data.labels.push(timestamp);
+                        temperatureChart.data.datasets[0].data.push(data.temperature);
+                        humidityChart.data.labels.push(timestamp);
+                        humidityChart.data.datasets[0].data.push(data.humidity);
+                        mq4VoltageChart.data.labels.push(timestamp);
+                        mq4VoltageChart.data.datasets[0].data.push(data.mq4_voltage);
+                        mq135VoltageChart.data.labels.push(timestamp);
+                        mq135VoltageChart.data.datasets[0].data.push(data.mq135_voltage);
+                    }
+                });
+
+                // Update the charts
+                temperatureChart.update();
+                humidityChart.update();
+                mq4VoltageChart.update();
+                mq135VoltageChart.update();
+            });
+        });
+    </script>
+</body>
+
+</html>
